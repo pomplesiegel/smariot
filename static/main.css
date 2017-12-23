@@ -1,15 +1,15 @@
 body {
-  margin:40px auto;
-  max-width:800px;
-  font-size:18px;
-  color:#444;
-  background-color: #fefefe;
-  padding:0 10px
-  font-family: Helvetica, Arial, sans-serif !important;
+    margin:5% auto;
+    max-width:90%;
+    font-size:18px;
+    color:#444;
+    background-color: #fefefe;
+    font-family: Helvetica, Arial, sans-serif !important;
 }
 
-h3{
-  line-height:1.5
+h1,h2,h3{
+    font-size:3rem;
+    line-height:2rem;
 }
 
 tr:nth-child(even) {

@@ -4,39 +4,36 @@
     <title>SmarIoT</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="refresh" content="180" />
+    <meta http-equiv="refresh" content=" {{ refresh }} " />
     <link rel="stylesheet" type="text/css" href="static/main.css"/>
   </head>
   <body>
     <div>
-        <p><span style="font-size:3rem;">SmarIoT</span>
-        <span style="display:inline-block; width:10%;"></span>
-        <span style="font-size:0.8rem;">Barebones REST App for IoT</span></p>
-    </div>
-    {% if result %}
+        <h2>SmarIoT</h2>
+        <p>Barebones REST app for IoT. <samp>POST</samp> or <samp>GET</samp> requests as JSON via the <samp>/data</samp> endpoint. 
+        Last {{ count }} message(s) available are:</p>
     <div>
-    <p>Last {{ count }} Message(s) Received:</p>
-    <samp style="font-size:0.8rem;">
         <table style="border-collapse:separate; border-spacing:1rem;">
-            {% for item in result %}
-            <tr>
-                <td>
-                <div>
-                <p style="font-size:0.75rem;">On {{ ts }} received</p>
-                <p>{{ item }}</p>
-                </div>
-                </td>
-            </tr>
-            {% endfor %}
+            {% if result %}
+                    {% for item in result %}
+                        <tr>
+                            <td>
+                            <div>
+                            <p style="font-size:0.75rem;">On {{ item[1] }} received message</p>
+                            <samp style="font-size:0.85rem;">{{ item[0] }}</samp>
+                            </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+            {% else %}
+                    <tr>
+                        <td><samp>No data available yet</samp></td>
+                    </tr>
+            {% endif %}
         </table>
-    </samp>
     </div>
-    {% else %}
-        <p>No data yet.</p>
-    {% endif %}
-    <div>
-        <p><samp>POST</samp> requests in JSON format to <samp>/recv</samp></p>
-        <p><span style="font-size:0.75rem;">Last update {{ ts }}</span></p>
+    <div style="text-align:center;font-size:0.75rem;">
+        <p>Last update {{ ts }}.<br/>This page will automatically reload every {{refresh}} seconds.</p>
     </div>
   </body>
 </html>
