@@ -20,7 +20,12 @@
         <table style="border-collapse:separate; border-spacing:1rem;">
             {% for item in result %}
             <tr>
-                <td> {{ item }} </td>
+                <td>
+                <div>
+                <p style="font-size:0.75rem;">On {{ ts }} received</p>
+                <p>{{ item }}</p>
+                </div>
+                </td>
             </tr>
             {% endfor %}
         </table>
@@ -31,6 +36,7 @@
     {% endif %}
     <div>
         <p><samp>POST</samp> requests in JSON format to <samp>/recv</samp></p>
+        <p><span style="font-size:0.75rem;">Last update {{ ts }}</span></p>
     </div>
   </body>
 </html>

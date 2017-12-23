@@ -1,6 +1,7 @@
 #so that pipreqs adds gunicorn as a dep
 import gunicorn
 import base64
+from time import gmtime, strftime
 from collections import deque
 from flask import Flask,render_template,request,jsonify,abort
 
@@ -11,7 +12,7 @@ last_recv_data = deque(maxlen=MAX_REQ_TO_KEEP)
 
 @app.route("/")
 def default_route():
-    return render_template('index.html', result=last_recv_data, count=MAX_REQ_TO_KEEP)
+    return render_template('index.html', result=last_recv_data, count=MAX_REQ_TO_KEEP, ts=strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime()))
 
 @app.route("/recv", methods=['POST']) 
 def index():
