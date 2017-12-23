@@ -27,8 +27,10 @@ def parse_ttn_message(msg):
     try:
         recv_data = {}
         recv_data['hardware_serial'] = msg['hardware_serial']
-        recv_data['timestamp'] = msg['metadata']['time']
+        recv_data['app_id'] = msg['app_id']
+        recv_data['downlink_url'] = msg['downlink_url']
         recv_data['payload_raw'] = base64.b64decode(msg['payload_raw'])
+        recv_data['timestamp'] = msg['metadata']['time']
         print(recv_data)
         return True
     except:
