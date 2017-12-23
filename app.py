@@ -1,3 +1,6 @@
+#so that pipreqs adds gunicorn as a dep
+import gunicorn
+
 from flask import Flask
 from flask import render_template
 
