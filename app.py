@@ -1,40 +1,28 @@
 #so that pipreqs adds gunicorn as a dep
 import gunicorn
 import base64
-from flask import Flask, render_template, redirect, url_for, request,jsonify
+from collections import deque
+from flask import Flask,render_template,request,jsonify,abort
 
 app = Flask(__name__)
 
+MAX_REQ_TO_KEEP = 5
+last_recv_data = deque(maxlen=MAX_REQ_TO_KEEP)
+
 @app.route("/")
 def default_route():
-    return render_template('index.html')
+    return render_template('index.html', result=last_recv_data, count=MAX_REQ_TO_KEEP)
 
 @app.route("/recv", methods=['POST']) 
 def index():
     resp = None
     try:
-        req_json = request.get_json(force=True)
-        #parse data
-        if parse_ttn_message(req_json):
-            resp = {'result':'success'}
-        else:
-            resp = {'result':'failure', 'error':'could not parse request'}
+        global last_recv_data
+        last_recv_data.append(request.get_json(force=True))
+        resp = {'result':'success'}
+        return jsonify(resp)
     except:
-        resp = {'result':'failure', 'error':'request does not contain JSON'}
-    return jsonify(resp)
-
-def parse_ttn_message(msg):
-    try:
-        recv_data = {}
-        recv_data['hardware_serial'] = msg['hardware_serial']
-        recv_data['app_id'] = msg['app_id']
-        recv_data['downlink_url'] = msg['downlink_url']
-        recv_data['payload_raw'] = base64.b64decode(msg['payload_raw'])
-        recv_data['timestamp'] = msg['metadata']['time']
-        print(recv_data)
-        return True
-    except:
-        return False
+        abort(400)
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

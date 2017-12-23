@@ -8,10 +8,28 @@
   </head>
   <body>
     <div>
-        <p><span style="font-size:3rem;">SmarIoT</span><br/>Generic REST App for the Internet of Things<br/></p>
-        <p>&nbsp;</p>
-      <p>Point incoming <samp>POST</samp> requests to <samp>/recv</samp> endpoint</p>
+        <p><span style="font-size:3rem;">SmarIoT</span>
+        <span style="display:inline-block; width:10%;"></span>
+        <span style="font-size:0.8rem;">Barebones REST App for IoT</span></p>
+    </div>
+    {% if result %}
+    <div>
+    <p>Last {{ count }} Message(s) Received:</p>
+    <samp style="font-size:0.8rem;">
+        <table style="border-collapse:separate; border-spacing:1rem;">
+            {% for item in result %}
+            <tr>
+                <td> {{ item }} </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </samp>
+    </div>
+    {% else %}
+        <p>No data yet.</p>
+    {% endif %}
+    <div>
+        <p><samp>POST</samp> requests in JSON format to <samp>/recv</samp></p>
     </div>
   </body>
 </html>
-
