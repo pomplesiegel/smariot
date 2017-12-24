@@ -7,35 +7,40 @@ from flask import Flask,render_template,request,jsonify,abort
 
 app = Flask(__name__)
 
-MAX_REQ_TO_KEEP = 5             # max. num requests to keep
-PAGE_RELOAD_INTERVAL = 240      # in seconds
+CACHE_SIZE = 5             # max. num requests to keep
+RELOAD_INTERVAL = 240      # in seconds
 
-last_recv_data = deque(maxlen=MAX_REQ_TO_KEEP)
-
-def get_timestamp():
-    return strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
+data_cache = deque(maxlen=CACHE_SIZE)
 
 @app.route("/")
-def default_route():
-    return render_template('index.html', result=last_recv_data, count=MAX_REQ_TO_KEEP,
-                                ts=get_timestamp(), refresh=PAGE_RELOAD_INTERVAL)
+def default_handler():
+    return render_template('index.html', cache=data_cache, count=CACHE_SIZE,
+                                ts=get_timestamp(), refresh=RELOAD_INTERVAL)
 
 @app.route("/data", methods=['GET','POST']) 
-def index():
-    resp = None
+def data_handler():
     if request.method == 'POST':
         try:
-            global last_recv_data
-            last_recv_data.append((request.get_json(force=True), get_timestamp()))
-            resp = {'result':'success'}
-            return jsonify(resp)
+            add_to_cache(request.get_json(force=True))
+            return jsonify({'result':'success'})
         except:
             abort(400)
+    elif request.method == 'GET':
+       return jsonify(get_cached_data())
     else:
-        resp = list()
-        for item in last_recv_data:
-            resp.append(item)
-        return jsonify(resp)
+        abort(400)
+
+def get_timestamp():
+    return strftime("%a, %d %b %Y %H:%M:%S GMT", gmtime())
+
+def add_to_cache(data):
+    data_cache.append((data, get_timestamp()))
+
+def get_cached_data():
+    resp = list()
+    for item in data_cache:
+        resp.append(item[0])
+    return resp
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()

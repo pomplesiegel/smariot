@@ -11,11 +11,11 @@
     <div>
         <h2>SmarIoT</h2>
         <p>Barebones REST app for IoT. <samp>POST</samp> or <samp>GET</samp> requests as JSON via the <samp>/data</samp> endpoint. 
-        Last {{ count }} message(s) available are:</p>
+        Last {{ count }} message(s) seen by the endpoint:</p>
     <div>
         <table style="border-collapse:separate; border-spacing:1rem;">
-            {% if result %}
-                    {% for item in result %}
+            {% if cache %}
+                    {% for item in cache %}
                         <tr>
                             <td>
                             <div>
