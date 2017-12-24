@@ -1,4 +1,4 @@
-### Installation
+### Local Installation
 ```
 $ sudo apt-get install postgresql pgadmin3
 ...
@@ -67,4 +67,26 @@ smariot=# SELECT * FROM data;
 ... Data ...
 
 smariot=# \q
+```
+
+### Remote (Heroku) Installation
+- Follow Heroku's [docs](https://devcenter.heroku.com/articles/heroku-postgresql)
+- Make changes and test in local, push code to `GitHub` (or Heroku's Git)
+- Run `heroku run python3` and execute `from app import db` and `db.create_all()` as in local environment
+- To inspect data use `heroku pg:psql` and for connecting via `pgadmin3`, follow [this](https://stackoverflow.com/a/11775090)
+```
+$ heroku pg:psql
+--> Connecting to postgresql-wwwwwww-xxxxx
+...
+smariot::DATABASE=> \d
+                List of relations
+ Schema |    Name     |   Type   |     Owner      
+--------+-------------+----------+----------------
+ public | data        | table    | qatitgwoqpxhyp
+ public | data_id_seq | sequence | qatitgwoqpxhyp
+(2 rows)
+
+smariot::DATABASE=> select * from data;
+... DATA ...
+smariot::DATABASE=> \q
 ```

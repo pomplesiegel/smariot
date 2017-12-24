@@ -11,6 +11,8 @@ Hosted on [Heroku](https://smariot.herokuapp.com/), and hooked up to stream of L
 - ~Timestamps for requests~
 - ~Implement GET on the endpoint~
 - Pretty printing of requests on homepage
-- Save data to DB
+- ~Save data to DB~
+- Add `/db` Endpoint for fetching data from DB
+- Add fectching options (by count, by time etc)
 - DB housekeeping (rotate out old data so that it stays under 10k rows limit)
 - Visualization of data (charts and stuff)
