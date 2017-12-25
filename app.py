@@ -14,9 +14,12 @@ import psycopg2
 from flask import Flask, render_template, request, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
 
+
 CACHE_SIZE = 5                                  # max. num requests to keep
 RELOAD_INTERVAL = 240                           # in seconds
 data_cache = deque(maxlen=CACHE_SIZE)           # holds latest 5 messages
+VIZ_DATA_POINTS = 50                            # default data points for the chart
+
 
 app = Flask(__name__)
 
@@ -25,7 +28,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# API Key
+# Get API Key for env vars (can be set via Heroku Dashboard)
 API_KEY = os.environ['API_KEY']
 
 class Data(db.Model): # pylint: disable=too-few-public-methods
@@ -78,7 +81,8 @@ def db_fetch_handler(count='1'):
 
 @app.route("/viz")
 def viz_handler():
-    return render_template('viz.html', viz_data=get_viz_data())
+    viz = get_viz_data()
+    return render_template('viz.html', viz_data=viz['data'], min_val = viz['minval'], max_val = viz['maxval'])
 
 
 def get_timestamp():
@@ -103,13 +107,35 @@ def get_cached_data():
 
 
 def get_viz_data(count=50):
-    """ dummy data for visualization"""
-    viz_data = list()
-    for item in range(count):
-        ts = dateutil.parser.parse('2017-12-23T09:28:02.147624Z').strftime("%d/%m/%y %H:%m:%S")
-        val = random.randrange(-30,60)
-        viz_data.append((ts, val))
-    return viz_data
+    """ fetch data from DB and parse for visualization"""
+    return parse_msg(count)
+
+
+def parse_msg(count):
+    """ parses stored JSON message into a format usable for viz"""
+    dat = db.session.query(Data).order_by(Data.id.desc()).limit(count)
+    dat_list = list()
+    min_val = 0
+    max_val = 0
+    for item in dat:
+        raw_json = json.loads(item.msg)
+        try:
+            ts = dateutil.parser.parse(raw_json['metadata']['time']).strftime("%d/%m/%y %H:%m:%S")
+        except:
+            continue
+        try:
+            val = parse_val(raw_json['payload_raw'])
+            if val < min_val: min_val = val
+            if val > max_val: max_val = val
+        except:
+            continue
+        dat_list.append((ts,val))
+    step_size = max_val / len(dat_list)
+    return {'data' : list(reversed(dat_list)), 'minval' : min_val - step_size/2, 'maxval' : max_val + 2 * step_size}
+ 
+def parse_val(raw_val):
+    return int('20') + random.randrange(-30,30)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
