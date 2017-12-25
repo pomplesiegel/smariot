@@ -90,3 +90,10 @@ smariot::DATABASE=> select * from data;
 ... DATA ...
 smariot::DATABASE=> \q
 ```
+
+### Useful SQL commands
+```
+DELETE FROM data WHERE timestamp < (CURRENT_TIMESTAMP - '60 minutes'::interval);
+\COPY (SELECT * FROM data) TO '~/smariot/dump.txt';
+TRUNCATE TABLE data;
+```
