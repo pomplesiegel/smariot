@@ -2,9 +2,9 @@
 #### Barebones REST App for IoT
 A very simple REST application written using Python and the Flask framework. Can be quickly depolyed to [Heroku](https://heroku.com)'s free-tier and hooked up to [TheThingsNetwork](https://thethingsnetwork.org) via `HTTP Integration` feature. 
 
-- `POST` and `GET` implemented on the `/data` endpoint. Homepage shows the messages in memory, five latest messages retained. `POST`ed data is also persisted to DB
-- Can `GET` in DB via the `/db` endpoint, an optional number provides the number of records to retrieve. Eg: `GET` on `/db/5` will return 5 latest records from the DB
-- Data in DB can be visualized as a line graph via the `/viz` endpoint (WIP:returns random dummy data for now)
+- Send incoming data via `POST` to the `/data` endpoint. A `GET` on this endpoint (and the homepage) show the most recent messages. `POST`ed data is also persisted to DB
+- `GET` present in the DB via the `/db` endpoint, an optional number determines the count records to retrieved. Eg: `GET` on `/db/15` will return 15 latest records (if available) from the DB
+- Data in DB can be visualized as a line graph via the `/viz` endpoint (**WIP:returns random dummy data for now**)
 
 ### Live Preview
 Hosted on [Heroku](https://smariot.herokuapp.com/), and hooked up to stream of LoRaWAN messages from TTN (one message exepected every 3 mins). Messages themselves are sent from a LoRaWAN endnode.
