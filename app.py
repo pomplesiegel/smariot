@@ -57,6 +57,16 @@ def data_handler():
         abort(400)
 
 
+@app.route("/db")
+@app.route("/db/<count>")
+def db_fetch_handler(count='1'):
+    """ handler for /db endpoint -- fetch data from DB"""
+    dat = db.session.query(Data).order_by(Data.id.desc()).limit(count)
+    ret_list = list()
+    for item in dat:
+        ret_list.append(json.loads(item.msg))
+    return jsonify(ret_list)
+
 def get_timestamp():
     """returns UTC time in readable format"""
     return strftime("%a, %d %b %Y %H:%M:%S GMT", gmtime())
