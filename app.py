@@ -2,6 +2,8 @@
 import os
 import datetime
 import json
+import random
+import dateutil.parser
 from time import gmtime, strftime
 from collections import deque
 
@@ -67,6 +69,12 @@ def db_fetch_handler(count='1'):
         ret_list.append(json.loads(item.msg))
     return jsonify(ret_list)
 
+
+@app.route("/viz")
+def viz_handler():
+    return render_template('viz.html', viz_data=get_viz_data())
+
+
 def get_timestamp():
     """returns UTC time in readable format"""
     return strftime("%a, %d %b %Y %H:%M:%S GMT", gmtime())
@@ -86,6 +94,16 @@ def get_cached_data():
     for item in data_cache:
         resp.append(item[0])
     return resp
+
+
+def get_viz_data(count=50):
+    """ dummy data for visualization"""
+    viz_data = list()
+    for item in range(count):
+        ts = dateutil.parser.parse('2017-12-23T09:28:02.147624Z').strftime("%d/%m/%y %H:%m:%S")
+        val = random.randrange(-30,60)
+        viz_data.append((ts, val))
+    return viz_data
 
 if __name__ == '__main__':
     app.run()
