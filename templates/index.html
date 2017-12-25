@@ -2,18 +2,19 @@
 <html>
   <head>
     <title>SmarIoT</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta content="text/html" charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta http-equiv="refresh" content=" {{ refresh }} " />
     <link rel="stylesheet" type="text/css" href="static/main.css"/>
   </head>
-  <body>
+  <body onload="window.onbeforeunload = function (){window.scrollTo(0, 0);}">
     <div>
         <h2>SmarIoT</h2>
         <p>Barebones REST app for IoT. <samp>POST</samp> or <samp>GET</samp> requests as JSON via the <samp>/data</samp> endpoint. 
         Last {{ count }} message(s) seen by the endpoint:</p>
+    </div>
     <div>
-        <table style="border-collapse:separate; border-spacing:1rem;">
+        <table style="border-collapse:separate; border-spacing:1rem;" summary="list of messages received on the endpoint">
             {% if cache %}
                     {% for item in cache %}
                         <tr>
@@ -27,7 +28,7 @@
                     {% endfor %}
             {% else %}
                     <tr>
-                        <td><samp>No data available yet</samp></td>
+                        <td><div><samp>No data available yet</samp></div></td>
                     </tr>
             {% endif %}
         </table>
