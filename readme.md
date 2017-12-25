@@ -20,3 +20,4 @@ Hosted on [Heroku](https://smariot.herokuapp.com/), and hooked up to stream of L
 - Add fectching options (~by count~, by time etc)
 - DB housekeeping (rotate out old data so that it stays under 10k rows limit)
 - Visualization of data (~charts and stuff~)
+- ~Simple API Key auth for `POST`ing data to `/data`~
