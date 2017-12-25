@@ -25,6 +25,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
+# API Key
+API_KEY = os.environ['API_KEY']
 
 class Data(db.Model): # pylint: disable=too-few-public-methods
     """ ORM class for storing messages to DB """
@@ -48,11 +50,15 @@ def default_handler():
 def data_handler():
     """handler for /data endpoint"""
     if request.method == 'POST':
-        try:
-            add_to_cache(request.get_json(force=True))
-            return jsonify({'result': 'success'})
-        except:
-            abort(400)
+            key = request.headers['x-api-key']
+            if not key == API_KEY:
+                abort(401)
+            else:
+                try:
+                    add_to_cache(request.get_json(force=True))
+                    return jsonify({'result': 'success'})
+                except:
+                    abort(400)
     elif request.method == 'GET':
         return jsonify(get_cached_data())
     else:
@@ -106,4 +112,4 @@ def get_viz_data(count=50):
     return viz_data
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
