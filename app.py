@@ -43,7 +43,7 @@ class Data(db.Model): # pylint: disable=too-few-public-methods
 @app.route("/")
 def default_handler():
     """handler for / endpoint"""
-    return render_template('index.html', refresh=RELOAD_INTERVAL, ts=get_timestamp())
+    return render_template('index.html', ts=get_timestamp())
 
 
 @app.route("/data", methods=['GET', 'POST'])
@@ -79,7 +79,7 @@ def db_fetch_handler(count=REC_FETCH_COUNT):
 @app.route("/viz")
 def viz_handler():
     viz = get_viz_data(100)
-    return render_template('viz.html', viz_data=viz)
+    return render_template('viz.html', refresh=RELOAD_INTERVAL, viz_data=viz)
 
 @socketio.on('connect', namespace='/live')
 def client_connect():
