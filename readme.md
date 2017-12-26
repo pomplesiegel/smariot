@@ -14,12 +14,12 @@ Hosted on [Heroku](https://smariot.herokuapp.com/), and hooked up to stream of L
 - ~Auto-refresh homepage~
 - ~Timestamps for requests~
 - ~Implement GET on the endpoint~
-- Pretty printing of requests on homepage
-- Load latest 5 messages from DB into cache on app restart
 - ~Save data to DB~
 - ~Add `/db` Endpoint for fetching data from DB~
-- Add fectching options (~by count~, by time etc)
-- DB housekeeping (rotate out old data so that it stays under 10k rows limit)
 - ~Visualization of data (charts and stuff)~
-- Add a "live" chart (chart data as it is `POST`ed)
 - ~Simple API Key auth for `POST`ing data to `/data`~
+- Add fectching via parameters (~by max count~, by timestamp, by Hardware ID)
+- Pretty printing of requests on homepage
+- Load latest 5 messages from DB into cache on app restart
+- DB housekeeping (rotate out old data so that it stays under 10k rows limit)
+- Add a "live" chart (chart data as it is `POST`ed)
