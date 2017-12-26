@@ -1,40 +1,50 @@
-<!DOCTYPE html>
+<!DOCTYPE HTML>
 <html>
-  <head>
-    <title>SmarIoT</title>
+<head>
     <meta content="text/html" charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta http-equiv="refresh" content=" {{ refresh }} " />
+    <title>SmarIoT</title>
     <link rel="stylesheet" type="text/css" href="static/main.css"/>
-  </head>
-  <body onload="window.onbeforeunload = function (){window.scrollTo(0, 0);}">
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.4.2.min.js"></script>
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function() {
+            namespace = '/';
+
+            // Connect to the Socket.IO server.
+            var socket = io.connect('http://localhost:5000/live');
+
+            // Event handler for new connections.
+            // The callback function is invoked when a connection with the
+            // server is established.
+            socket.on('connect', function() {
+                socket.emit('my_event', {data: 'I\'m connected!'});
+            });
+  
+            // Event handler for server sent data.
+            // The callback function is invoked whenever the server emits data
+            socket.on('data', function(msg) {
+                //$('#log').append('<tr>' + $('<td/>').text('Received #' + msg.value).html());
+                $('#requests tr:last').after(
+                    '<tr><div><td><p style="font-size:0.75rem;">On ' + msg.timestamp +
+                    ' received message</p><samp style="font-size:0.85rem;">' + msg.value +
+                    '</samp></td></div></tr>');
+            });
+          });
+    </script>
+</head>
+<body>
     <div>
         <h2>SmarIoT</h2>
-        <p>Barebones REST app for IoT. <samp>POST</samp> or <samp>GET</samp> requests as JSON via the <samp>/data</samp> endpoint. 
-        Last {{ count }} message(s) seen by the endpoint:</p>
+        <p>Barebones REST app for IoT. <samp>POST</samp> (or <samp>GET</samp>) requests as JSON via the <samp>/data</samp> endpoint.
+        Data received since last page reload:</p>
     </div>
-    <div>
-        <table style="border-collapse:separate; border-spacing:1rem;" summary="list of messages received on the endpoint">
-            {% if cache %}
-                    {% for item in cache %}
-                        <tr>
-                            <td>
-                            <div>
-                            <p style="font-size:0.75rem;">On {{ item[1] }} received message</p>
-                            <samp style="font-size:0.85rem;">{{ item[0] }}</samp>
-                            </div>
-                            </td>
-                        </tr>
-                    {% endfor %}
-            {% else %}
-                    <tr>
-                        <td><div><samp>No data available yet</samp></div></td>
-                    </tr>
-            {% endif %}
-        </table>
-    </div>
+    <table id="requests" style="border-collapse:separate; border-spacing:1rem;" summary="list of messages received on the endpoint">
+        <tr></tr>
+    </table>
     <div style="text-align:center;font-size:0.75rem;">
-        <p>Last update {{ ts }}.<br/>This page will automatically reload every {{refresh}} seconds.</p>
+        <p>Last update {{ ts }}.<br/>This page will automatically reload every {{ refresh }} seconds.</p>
     </div>
-  </body>
+</body>
 </html>

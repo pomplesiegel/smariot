@@ -4,7 +4,6 @@ import datetime
 import json
 import base64
 from time import gmtime, strftime
-from collections import deque
 import dateutil.parser
 
 # unused, yet imported so pipreqs generates correct requirements.txt
@@ -13,15 +12,14 @@ import psycopg2
 
 from flask import Flask, render_template, request, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
+from flask_socketio import SocketIO, emit, disconnect
 
-
-CACHE_SIZE = 5                                  # max. num requests to keep
-RELOAD_INTERVAL = 240                           # in seconds
-data_cache = deque(maxlen=CACHE_SIZE)           # holds latest 5 messages
+RELOAD_INTERVAL = 300                           # in seconds
 VIZ_DATA_POINTS = 50                            # default data points for the chart
-
+REC_FETCH_COUNT = '1'                           # default records to fetch (must be a string)
 
 app = Flask(__name__)
+socketio = SocketIO(app)
 
 # DB config settings, the second one is to supress a warning
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
@@ -44,9 +42,7 @@ class Data(db.Model): # pylint: disable=too-few-public-methods
 @app.route("/")
 def default_handler():
     """handler for / endpoint"""
-    return render_template('index.html', cache=deque(reversed(data_cache)),
-                           count=CACHE_SIZE, ts=get_timestamp(),
-                           refresh=RELOAD_INTERVAL)
+    return render_template('index.html', refresh=RELOAD_INTERVAL, ts=get_timestamp())
 
 
 @app.route("/data", methods=['GET', 'POST'])
@@ -58,7 +54,7 @@ def data_handler():
             abort(401)
         else:
             try:
-                add_to_cache(request.get_json(force=True))
+                save_and_emit(request.get_json(force=True))
                 return jsonify({'result': 'success'})
             except:
                 abort(400)
@@ -70,7 +66,7 @@ def data_handler():
 
 @app.route("/db")
 @app.route("/db/<count>")
-def db_fetch_handler(count='1'):
+def db_fetch_handler(count=REC_FETCH_COUNT):
     """ handler for /db endpoint -- fetch data from DB"""
     dat = db.session.query(Data).order_by(Data.id.desc()).limit(count)
     ret_list = list()
@@ -86,17 +82,22 @@ def viz_handler():
                            min_val=viz['minval'], max_val=viz['maxval'])
 
 
+@socketio.on('connect', namespace='/live')
+def client_connect():
+    emit('my response', {'data': 'Connected'})
+
+
 def get_timestamp():
     """returns UTC time in readable format"""
     return strftime("%a, %d %b %Y %H:%M:%S GMT", gmtime())
 
 
-def add_to_cache(data):
-    """helper for adding POSTed data to cache and persisting to DB"""
-    data_cache.append((data, get_timestamp()))
+def save_and_emit(data):
+    """ save POSTed data to DB and emit to socketio """
     db_data = Data(json.dumps(data))
     db.session.add(db_data)
     db.session.commit()
+    socketio.emit('data', {'timestamp': get_timestamp(), 'value': json.dumps(data)}, namespace='/live')
 
 
 def get_cached_data():
@@ -107,12 +108,12 @@ def get_cached_data():
     return resp
 
 
-def get_viz_data(count=50):
+def get_viz_data(count=VIZ_DATA_POINTS):
     """ fetch data from DB and parse for visualization"""
-    return parse_msg(count)
+    return parse_db_data(count)
 
 
-def parse_msg(count):
+def parse_db_data(count):
     """ parses stored JSON and returns plottable data (timestamp vs sensor value) """
     dat = db.session.query(Data).order_by(Data.id.desc()).limit(count)
     dat_list = list()
@@ -121,28 +122,39 @@ def parse_msg(count):
     for item in dat:
         raw_json = json.loads(item.msg)
         try:
-            timestamp = dateutil.parser.parse(raw_json['metadata']['time']).strftime("%d/%m/%y %H:%m:%S")
+            timestamp = msg_get_timestamp(raw_json)
         except:
             continue
         try:
-            val = parse_val(raw_json['payload_raw'])
+            val = msg_get_value(raw_json)
             if val < min_val:
                 min_val = val
             if val > max_val:
                 max_val = val
         except:
-            val = 0         # error case, unparsable data
+            val = 0         # default value, in case of unparsable data
         dat_list.append((timestamp, val))
     step_size = max_val / len(dat_list)
     return {'data' : list(reversed(dat_list)), 'minval' : min_val - step_size/2,
             'maxval' : max_val + 2 * step_size}
 
 
-def parse_val(raw_val):
+
+def msg_get_timestamp(raw_json):
+    """ extract timestamp from JSON """
+    return dateutil.parser.parse(raw_json['metadata']['time']).strftime("%d/%m/%y %H:%m:%S")
+
+
+def msg_get_value(raw_json):
+    """ extract sensor reading from JSON """
+    return msg_parse_val(raw_json['payload_raw'])
+
+
+def msg_parse_val(raw_val):
     """ parse JSON from TTN and return actual sensor value """
-    ret_val = 5
+    ret_val = 0
     try:
-        # extract last byte from message, this is the sensor value
+        # extract last byte which is the sensor value
         decoded_byte_arr = base64.b64decode(raw_val)
         ret_val = int(hex(decoded_byte_arr[4]), 16)
     except:
@@ -151,4 +163,4 @@ def parse_val(raw_val):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app, debug=True)
