@@ -14,7 +14,7 @@ from flask import Flask, render_template, request, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO, emit, disconnect
 
-RELOAD_INTERVAL = 300                           # in seconds
+RELOAD_INTERVAL = 3000                          # in seconds
 VIZ_DATA_POINTS = 50                            # default data points for the chart
 REC_FETCH_COUNT = '1'                           # default records to fetch (must be a string)
 
