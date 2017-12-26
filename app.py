@@ -59,7 +59,7 @@ def data_handler():
             except:
                 abort(400)
     elif request.method == 'GET':
-        return jsonify(get_cached_data())
+        return db_fetch_handler()
     else:
         abort(400)
 
@@ -98,14 +98,6 @@ def save_and_emit(data):
     db.session.add(db_data)
     db.session.commit()
     socketio.emit('data', {'timestamp': get_timestamp(), 'value': json.dumps(data)}, namespace='/live')
-
-
-def get_cached_data():
-    """helper to return data in cache as a list"""
-    resp = list()
-    for item in data_cache:
-        resp.append(item[0])
-    return resp
 
 
 def get_viz_data(count=VIZ_DATA_POINTS):
