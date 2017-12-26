@@ -2,10 +2,10 @@
 import os
 import datetime
 import json
-import random
-import dateutil.parser
+import base64
 from time import gmtime, strftime
 from collections import deque
+import dateutil.parser
 
 # unused, yet imported so pipreqs generates correct requirements.txt
 import gunicorn
@@ -53,15 +53,15 @@ def default_handler():
 def data_handler():
     """handler for /data endpoint"""
     if request.method == 'POST':
-            key = request.headers['x-api-key']
-            if not key == API_KEY:
-                abort(401)
-            else:
-                try:
-                    add_to_cache(request.get_json(force=True))
-                    return jsonify({'result': 'success'})
-                except:
-                    abort(400)
+        key = request.headers['x-api-key']
+        if not key == API_KEY:
+            abort(401)
+        else:
+            try:
+                add_to_cache(request.get_json(force=True))
+                return jsonify({'result': 'success'})
+            except:
+                abort(400)
     elif request.method == 'GET':
         return jsonify(get_cached_data())
     else:
@@ -81,8 +81,9 @@ def db_fetch_handler(count='1'):
 
 @app.route("/viz")
 def viz_handler():
-    viz = get_viz_data()
-    return render_template('viz.html', viz_data=viz['data'], min_val = viz['minval'], max_val = viz['maxval'])
+    viz = get_viz_data(100)
+    return render_template('viz.html', viz_data=viz['data'],
+                           min_val=viz['minval'], max_val=viz['maxval'])
 
 
 def get_timestamp():
@@ -112,7 +113,7 @@ def get_viz_data(count=50):
 
 
 def parse_msg(count):
-    """ parses stored JSON message into a format usable for viz"""
+    """ parses stored JSON and returns plottable data (timestamp vs sensor value) """
     dat = db.session.query(Data).order_by(Data.id.desc()).limit(count)
     dat_list = list()
     min_val = 0
@@ -120,21 +121,33 @@ def parse_msg(count):
     for item in dat:
         raw_json = json.loads(item.msg)
         try:
-            ts = dateutil.parser.parse(raw_json['metadata']['time']).strftime("%d/%m/%y %H:%m:%S")
+            timestamp = dateutil.parser.parse(raw_json['metadata']['time']).strftime("%d/%m/%y %H:%m:%S")
         except:
             continue
         try:
             val = parse_val(raw_json['payload_raw'])
-            if val < min_val: min_val = val
-            if val > max_val: max_val = val
+            if val < min_val:
+                min_val = val
+            if val > max_val:
+                max_val = val
         except:
-            continue
-        dat_list.append((ts,val))
+            val = 0         # error case, unparsable data
+        dat_list.append((timestamp, val))
     step_size = max_val / len(dat_list)
-    return {'data' : list(reversed(dat_list)), 'minval' : min_val - step_size/2, 'maxval' : max_val + 2 * step_size}
- 
+    return {'data' : list(reversed(dat_list)), 'minval' : min_val - step_size/2,
+            'maxval' : max_val + 2 * step_size}
+
+
 def parse_val(raw_val):
-    return int('20') + random.randrange(-30,30)
+    """ parse JSON from TTN and return actual sensor value """
+    ret_val = 5
+    try:
+        # extract last byte from message, this is the sensor value
+        decoded_byte_arr = base64.b64decode(raw_val)
+        ret_val = int(hex(decoded_byte_arr[4]), 16)
+    except:
+        pass
+    return ret_val
 
 
 if __name__ == '__main__':
