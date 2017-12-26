@@ -7,13 +7,9 @@ import struct
 from time import gmtime, strftime
 import dateutil.parser
 
-# unused, yet imported so pipreqs generates correct requirements.txt
-import gunicorn
-import psycopg2
-
 from flask import Flask, render_template, request, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
-from flask_socketio import SocketIO, emit, disconnect
+from flask_socketio import SocketIO, emit
 
 RELOAD_INTERVAL = 3000                          # in seconds
 VIZ_DATA_POINTS = 50                            # default data points for the chart
@@ -78,11 +74,13 @@ def db_fetch_handler(count=REC_FETCH_COUNT):
 
 @app.route("/viz")
 def viz_handler():
-    viz = get_viz_data(100)
+    """ handler for the viz endpoint """
+    viz = get_viz_data()
     return render_template('viz.html', refresh=RELOAD_INTERVAL, viz_data=viz)
 
 @socketio.on('connect', namespace='/live')
 def client_connect():
+    """ socketio client connect handler """
     emit('my response', {'data': 'Connected'})
 
 
@@ -96,7 +94,8 @@ def save_and_emit(data):
     db_data = Data(json.dumps(data))
     db.session.add(db_data)
     db.session.commit()
-    socketio.emit('data', {'timestamp': get_timestamp(), 'value': json.dumps(data)}, namespace='/live')
+    socketio.emit('data', {'timestamp': get_timestamp(), 'value': json.dumps(data)},
+                  namespace='/live')
 
 
 def get_viz_data(count=VIZ_DATA_POINTS):
@@ -108,8 +107,6 @@ def parse_db_data(count):
     """ parses stored JSON and returns plottable data (timestamp vs sensor value) """
     dat = db.session.query(Data).order_by(Data.id.desc()).limit(count)
     dat_list = list()
-    min_val = 0
-    max_val = 0
     for item in dat:
         raw_json = json.loads(item.msg)
         try:
@@ -119,11 +116,9 @@ def parse_db_data(count):
         try:
             val = msg_get_value(raw_json)
         except:
-            val = 0         # default value, in case of unparsable data
-            val2 = 0
+            val = list(0, 0) # default value, in case of unparsable data
         dat_list.append((timestamp, val))
     return list(reversed(dat_list))
-
 
 
 def msg_get_timestamp(raw_json):
