@@ -79,9 +79,7 @@ def db_fetch_handler(count=REC_FETCH_COUNT):
 @app.route("/viz")
 def viz_handler():
     viz = get_viz_data(100)
-    return render_template('viz.html', viz_data=viz['data'],
-                           min_val=viz['minval'], max_val=viz['maxval'])
-
+    return render_template('viz.html', viz_data=viz)
 
 @socketio.on('connect', namespace='/live')
 def client_connect():
@@ -119,17 +117,12 @@ def parse_db_data(count):
         except:
             continue
         try:
-            val = msg_get_value(raw_json)[0]
-            if val < min_val:
-                min_val = val
-            if val > max_val:
-                max_val = val
+            val = msg_get_value(raw_json)
         except:
             val = 0         # default value, in case of unparsable data
+            val2 = 0
         dat_list.append((timestamp, val))
-    step_size = max_val / len(dat_list)
-    return {'data' : list(reversed(dat_list)), 'minval' : min_val - step_size/2,
-            'maxval' : max_val + 2 * step_size}
+    return list(reversed(dat_list))
 
 
 

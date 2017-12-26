@@ -6,60 +6,82 @@
    <meta http-equiv="refresh" content=" {{ refresh }} " />
    <link rel="stylesheet" type="text/css" href="static/main.css"/>
    <!-- import chartjs from CDN -->
-   <script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js'></script>
+   <script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.min.js'></script>
 </head>
 <body>
 <h3>SmarIoT : Viz</h3>
 <p>Line plot of the latest {{ viz_data|length }} entries in the DB</p>
 <!-- bar chart canvas element -->
-<div align="center"><canvas id="chart" width="950px" height="550px"></canvas></div>
+<div class="container">
+  <br />
+  <div class="row">
+    <div class="col-md-1"></div>
+    <div class="col-md-10">
+<!--       Chart.js Canvas Tag -->
+      <canvas id="barChart"></canvas>
+    </div>
+    <div class="col-md-1"></div>
+  </div>
+</div>
 <script>
-   // bar chart data
-   var barData = {
-   labels : [{% for item in viz_data %}
-                  "{{item[0]}}",
-              {% endfor %}],
-   datasets : [
-      {
-            fillColor: "rgba(151,187,205,0.2)",
-            strokeColor: "rgba(151,187,205,1)",
-            pointColor: "rgba(151,187,205,1)",
-            pointStrokeColor: "#fff",
-            pointHighlightFill: "#fff",
-            pointHighlightStroke: "rgba(151,187,205,1)",
-            data : [{% for item in viz_data %}
-                      {{item[1]}},
-                    {% endfor %}]
-      }]
-   }
- 
-    Chart.defaults.global.animationSteps = 50;
-    Chart.defaults.global.tooltipYPadding = 16;
-    Chart.defaults.global.tooltipCornerRadius = 0;
-    Chart.defaults.global.tooltipTitleFontStyle = "normal";
-    Chart.defaults.global.tooltipFillColor = "rgba(0,0,0,0.8)";
-    Chart.defaults.global.responsive = false;
-    Chart.defaults.global.scaleLineColor = "black";
-    Chart.defaults.global.scaleFontSize = 12;
- 
-   // get bar chart canvas
-   var mychart = document.getElementById("chart").getContext("2d");
- 
-   // draw bar chart
-   var LineChartDemo = new Chart(mychart).Line(barData, {
-        animation:false,
-        scaleOverride:true,
-        scaleSteps: {{ viz_data|length() }},
-        scaleStartValue: {{ min_val }},
-        scaleStepWidth: Math.ceil( {{ max_val }} / {{ viz_data|length }}),
-        scaleShowVerticalLines: true,
-        scaleShowGridLines : true,
-        barShowStroke : true,
-        scaleShowLabels: false,
-        datasetFill : false,
-        pointDotRadius : 4,
-        pointHitDetectionRadius : 1,
-   });
+var canvas = document.getElementById("barChart");
+var ctx = canvas.getContext('2d');
+
+// Global Options:
+Chart.defaults.global.defaultFontColor = 'black';
+Chart.defaults.global.defaultFontSize = 12;
+
+var data = {
+  labels: [
+            {% for item in viz_data %}
+                "{{item[0]}}",
+            {% endfor %}
+  ],
+  datasets: [{
+      label: "Temp",
+      fill: false,
+      borderColor: "red",
+      data: [
+            {% for item in viz_data %}
+                "{{item[1][0]}}",
+            {% endfor %}
+      ],
+      spanGaps: false,
+    }, {
+      label: "Humidity",
+      fill: false,
+      borderColor: "blue",
+      data: [
+            {% for item in viz_data %}
+                "{{item[1][1]}}",
+            {% endfor %}
+      ],
+      spanGaps: false,
+    }
+  ]
+};
+
+// Notice the scaleLabel at the same level as Ticks
+var options = {
+  scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero:true
+                },
+                scaleLabel: {
+                     display: false,
+                     fontSize: 20 
+                  }
+            }]            
+        }  
+};
+
+// Chart declaration:
+var myBarChart = new Chart(ctx, {
+  type: 'line',
+  data: data,
+  options: options
+});
 </script>
 </body>
 </html>
