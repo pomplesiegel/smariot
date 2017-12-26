@@ -5,13 +5,14 @@
    <meta name="viewport" content="width=device-width, initial-scale=1" />
    <meta http-equiv="refresh" content=" {{ refresh }} " />
    <link rel="stylesheet" type="text/css" href="static/main.css"/>
-   <!-- import plugin script -->
+   <!-- import chartjs from CDN -->
    <script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js'></script>
 </head>
 <body>
-<h1>SmarIoT : Viz</h1>
+<h3>SmarIoT : Viz</h3>
+<p>Line plot of the latest {{ viz_data|length }} entries in the DB</p>
 <!-- bar chart canvas element -->
-<div align="center"><canvas id="chart" width="900px" height="500px"></canvas></div>
+<div align="center"><canvas id="chart" width="950px" height="550px"></canvas></div>
 <script>
    // bar chart data
    var barData = {
@@ -26,7 +27,6 @@
             pointStrokeColor: "#fff",
             pointHighlightFill: "#fff",
             pointHighlightStroke: "rgba(151,187,205,1)",
-            bezierCurve : false,
             data : [{% for item in viz_data %}
                       {{item[1]}},
                     {% endfor %}]
@@ -55,7 +55,10 @@
         scaleShowVerticalLines: true,
         scaleShowGridLines : true,
         barShowStroke : true,
-        scaleShowLabels: true,
+        scaleShowLabels: false,
+        datasetFill : false,
+        pointDotRadius : 4,
+        pointHitDetectionRadius : 1,
    });
 </script>
 </body>
