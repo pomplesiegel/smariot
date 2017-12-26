@@ -3,6 +3,7 @@ import os
 import datetime
 import json
 import base64
+import struct
 from time import gmtime, strftime
 import dateutil.parser
 
@@ -118,7 +119,7 @@ def parse_db_data(count):
         except:
             continue
         try:
-            val = msg_get_value(raw_json)
+            val = msg_get_value(raw_json)[0]
             if val < min_val:
                 min_val = val
             if val > max_val:
@@ -147,8 +148,8 @@ def msg_parse_val(raw_val):
     ret_val = 0
     try:
         # extract last byte which is the sensor value
-        decoded_byte_arr = base64.b64decode(raw_val)
-        ret_val = int(hex(decoded_byte_arr[4]), 16)
+        byte_arr = base64.b64decode(raw_val)
+        ret_val = struct.unpack('ff', byte_arr)
     except:
         pass
     return ret_val
