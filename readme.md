@@ -18,8 +18,11 @@ Hosted on [Heroku](https://smariot.herokuapp.com/), and hooked up to stream of L
 - ~Add `/db` Endpoint for fetching data from DB~
 - ~Visualization of data (charts and stuff)~
 - ~Simple API Key auth for `POST`ing data to `/data`~
+- ~Upgrade to new data format~
+- ~Upgrade to chart.js ver 2.x~
+- ~Plot multi-line chart~
+- ~Get rid of cache + prep socketio (local machine)~
 - Add fectching via parameters (~by max count~, by timestamp, by Hardware ID)
-- Pretty printing of requests on homepage
-- Load latest 5 messages from DB into cache on app restart
 - DB housekeeping (rotate out old data so that it stays under 10k rows limit)
-- Add a "live" chart (chart data as it is `POST`ed)
+- Pretty printing of requests on homepage using socketio
+- Add a "live" chart (chart data as it is `POST`ed) using socketio
