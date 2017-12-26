@@ -128,7 +128,7 @@ def parse_db_data(count):
 
 def msg_get_timestamp(raw_json):
     """ extract timestamp from JSON """
-    return dateutil.parser.parse(raw_json['metadata']['time']).strftime("%d/%m/%y %H:%m:%S")
+    return dateutil.parser.parse(raw_json['metadata']['time']).strftime("%d/%m/%y %H:%M:%S")
 
 
 def msg_get_value(raw_json):
