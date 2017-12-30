@@ -32,13 +32,15 @@ class SensorData(db.Model): # pylint: disable=too-few-public-methods
     __tablename__ = 'sensor_data'
     id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    hw_id = db.Column(db.String)
     msg = db.Column(db.String)
 
-    def __init__(self, msg):
+    def __init__(self, hw_id, msg):
+        self.hw_id = hw_id
         self.msg = msg
 
     def __str__(self):
-        return "SensorData({},{})".format(self.timestamp, self.msg)
+        return "SensorData({},{},{})".format(self.timestamp, self.hw_id, self.msg)
 
 
 class DeviceData(db.Model): # pylint: disable=too-few-public-methods
@@ -74,11 +76,11 @@ def data_handler():
         if not key == API_KEY:
             abort(401)
         else:
-            #try:
-            save_and_emit(request.get_json(force=True))
-            return jsonify({'result': 'success'})
-            #except:
-            #    abort(400)
+            try:
+                save_and_emit(request.get_json(force=True))
+                return jsonify({'result': 'success'})
+            except:
+                abort(400)
     elif request.method == 'GET':
         return db_fetch_handler()
     else:
@@ -92,15 +94,19 @@ def db_fetch_handler(count=REC_FETCH_COUNT):
     dat = db.session.query(SensorData).order_by(SensorData.id.desc()).limit(count)
     ret_list = list()
     for item in dat:
-        ret_list.append({'timestamp': item.timestamp, 'data':json.loads(item.msg)})
+        ret_list.append({'hw_id':item.hw_id, 'timestamp': item.timestamp, 'data':json.loads(item.msg)})
     return jsonify(ret_list)
 
 
 @app.route("/viz")
-def viz_handler():
+@app.route("/viz/<dev_id>")
+def viz_handler(dev_id=''):
     """ handler for the viz endpoint """
-    viz = get_viz_data()
-    return render_template('viz.html', refresh=RELOAD_INTERVAL, viz_data=viz)
+    if not dev_id:
+        return render_template('viz.html', dev_list=get_dev_list())
+    else:
+        viz = get_viz_data(dev_id)
+        return render_template('viz_chart.html', refresh=RELOAD_INTERVAL, viz_data=viz)
 
 
 @socketio.on('connect', namespace='/live')
@@ -116,13 +122,14 @@ def get_timestamp():
 
 def save_and_emit(data):
     """ save POSTed data to DB and emit to socketio """
-    # parse sensor data and add to DB
     readings = msg_get_value(data)
-    sensor_data = SensorData(json.dumps(readings))
+    hwid = msg_get_hw_id(data)
+    
+    # parse sensor data and add to DB
+    sensor_data = SensorData(hwid, json.dumps(readings))
     db.session.add(sensor_data)
     
     # parse Hardware ID and add to DB, if not existing
-    hwid = msg_get_hw_id(data)
     dev_data = get_or_create(db.session, DeviceData, hw_id=hwid)
     if dev_data:
         db.session.add(dev_data)
@@ -137,14 +144,15 @@ def save_and_emit(data):
                   namespace='/live')
 
 
-def get_viz_data(count=VIZ_DATA_POINTS):
+def get_viz_data(device_id, count=VIZ_DATA_POINTS):
     """ fetch data from DB and parse for visualization"""
-    return parse_db_data(count)
+    return parse_db_data(device_id, count)
 
 
-def parse_db_data(count):
+def parse_db_data(device_id, count):
     """ parses stored JSON and returns plottable data (timestamp vs sensor value) """
-    dat = db.session.query(SensorData).order_by(SensorData.id.desc()).limit(count)
+    dat = db.session.query(SensorData).filter(SensorData.hw_id.like(device_id)).order_by(SensorData.id.desc()).limit(count)
+    print('dev_id: ' + device_id + '')
     dat_list = list()
     for item in dat:
         timestamp = item.timestamp
@@ -193,5 +201,14 @@ def get_or_create(session, model, **kwargs):
         return instance
 
 
+def get_dev_list():
+    """ get list of hardware IDs in DB"""
+    dat = db.session.query(DeviceData).order_by(DeviceData.id.desc())
+    dat_list = list()
+    for item in dat:
+        dat_list.append(str(item.hw_id))
+    return list(reversed(dat_list))
+
+
 if __name__ == '__main__':
-    socketio.run(app)
+    socketio.run(app, debug=True)

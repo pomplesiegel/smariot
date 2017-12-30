@@ -2,86 +2,24 @@
 <html lang="en">
    <meta charset="utf-8" />
    <title>SmarIoT : Viz</title>
-   <meta name="viewport" content="width=device-width, initial-scale=1" />
-   <meta http-equiv="refresh" content=" {{ refresh }} " />
    <link rel="stylesheet" type="text/css" href="static/main.css"/>
-   <!-- import chartjs from CDN -->
-   <script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.min.js'></script>
+   <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
 <body>
 <h3>SmarIoT : Viz</h3>
-<p>Line plot of the latest {{ viz_data|length }} entries in the DB</p>
-<!-- bar chart canvas element -->
-<div class="container">
-  <br />
-  <div class="row">
-    <div class="col-md-1"></div>
-    <div class="col-md-10">
-<!--       Chart.js Canvas Tag -->
-      <canvas id="barChart"></canvas>
-    </div>
-    <div class="col-md-1"></div>
-  </div>
+<div>
+<form name="change">
+<p>Bar chart for node 
+<select style="font-size:1rem;" name="devices" onchange="document.getElementById('viz_frame').src = this.options[this.selectedIndex].value">
+    <option disabled selected value> -- select an device -- </option>
+    {% for item in dev_list %}
+        <option value="/viz/{{item}}">{{item}}</option>
+    {% endfor %}
+</select>
+</p>
+</form>
 </div>
-<script>
-var canvas = document.getElementById("barChart");
-var ctx = canvas.getContext('2d');
-
-// Global Options:
-Chart.defaults.global.defaultFontColor = 'black';
-Chart.defaults.global.defaultFontSize = 12;
-
-var data = {
-  labels: [
-            {% for item in viz_data %}
-                "{{item[0]}}",
-            {% endfor %}
-  ],
-  datasets: [{
-      label: "Temp",
-      fill: false,
-      borderColor: "red",
-      data: [
-            {% for item in viz_data %}
-                "{{item[1][0]}}",
-            {% endfor %}
-      ],
-      spanGaps: false,
-    }, {
-      label: "Humidity",
-      fill: false,
-      borderColor: "blue",
-      data: [
-            {% for item in viz_data %}
-                "{{item[1][1]}}",
-            {% endfor %}
-      ],
-      spanGaps: false,
-    }
-  ]
-};
-
-// Notice the scaleLabel at the same level as Ticks
-var options = {
-  scales: {
-            yAxes: [{
-                ticks: {
-                    beginAtZero:true
-                },
-                scaleLabel: {
-                     display: false,
-                     fontSize: 20 
-                  }
-            }]            
-        }  
-};
-
-// Chart declaration:
-var myBarChart = new Chart(ctx, {
-  type: 'line',
-  data: data,
-  options: options
-});
-</script>
+    <iframe id="viz_frame" frameborder="0" noresize="noresize" style="height:350px;width:98%" src="about:blank" />
+</div>
 </body>
 </html>

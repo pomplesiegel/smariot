@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+   <meta charset="utf-8" />
+   <title>SmarIoT : Viz</title>
+   <meta name="viewport" content="width=device-width, initial-scale=1" />
+   <meta http-equiv="refresh" content=" {{ refresh }} " />
+   <link rel="stylesheet" type="text/css" href="static/iframe.css"/>
+   <!-- import chartjs from CDN -->
+   <script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.min.js'></script>
+</head>
+<body>
+<div class="container">
+      <canvas id="barChart" height="300px" width="98%"></canvas>
+</div>
+<script>
+var canvas = document.getElementById("barChart");
+var ctx = canvas.getContext('2d');
+
+// Global Options:
+Chart.defaults.global.defaultFontColor = 'black';
+Chart.defaults.global.defaultFontSize = 12;
+
+var data = {
+  labels: [
+            {% for item in viz_data %}
+                "{{item[0]}}",
+            {% endfor %}
+  ],
+  datasets: [{
+      label: "Temp",
+      fill: false,
+      borderColor: "red",
+      data: [
+            {% for item in viz_data %}
+                "{{item[1][0]}}",
+            {% endfor %}
+      ],
+      spanGaps: false,
+    }, {
+      label: "Humidity",
+      fill: false,
+      borderColor: "blue",
+      data: [
+            {% for item in viz_data %}
+                "{{item[1][1]}}",
+            {% endfor %}
+      ],
+      spanGaps: false,
+    }
+  ]
+};
+
+// Notice the scaleLabel at the same level as Ticks
+var options = {
+  responsive: true,
+  maintainAspectRatio: false,
+  scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero:true
+                },
+                scaleLabel: {
+                     display: false,
+                     fontSize: 20 
+                  }
+            }]            
+        }  
+};
+
+// Chart declaration:
+var myBarChart = new Chart(ctx, {
+  type: 'line',
+  data: data,
+  options: options
+});
+</script>
+</body>
+</html>
