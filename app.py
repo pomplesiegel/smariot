@@ -52,7 +52,7 @@ class DeviceData(db.Model): # pylint: disable=too-few-public-methods
 
     def __init__(self, hw_id):
         self.hw_id = hw_id
-        
+
     def __str__(self):
         return "DeviceData({},{})".format(self.timestamp, self.hw_id)
 
@@ -61,6 +61,7 @@ class DeviceData(db.Model): # pylint: disable=too-few-public-methods
 def default_handler():
     """handler for / endpoint"""
     return render_template('index.html')
+
 
 @app.route("/req")
 def req_handler():
@@ -94,7 +95,9 @@ def db_fetch_handler(count=REC_FETCH_COUNT):
     dat = db.session.query(SensorData).order_by(SensorData.id.desc()).limit(count)
     ret_list = list()
     for item in dat:
-        ret_list.append({'hw_id':item.hw_id, 'timestamp': item.timestamp, 'data':json.loads(item.msg)})
+        ret_list.append({'hw_id':item.hw_id,
+                         'timestamp': item.timestamp,
+                         'data':json.loads(item.msg)})
     return jsonify(ret_list)
 
 
@@ -124,18 +127,16 @@ def save_and_emit(data):
     """ save POSTed data to DB and emit to socketio """
     readings = msg_get_value(data)
     hwid = msg_get_hw_id(data)
-    
+
     # parse sensor data and add to DB
     sensor_data = SensorData(hwid, json.dumps(readings))
     db.session.add(sensor_data)
-    
+
     # parse Hardware ID and add to DB, if not existing
     dev_data = get_or_create(db.session, DeviceData, hw_id=hwid)
     if dev_data:
         db.session.add(dev_data)
-    else:
-        print("Device: " + str(hwid) + " already in DB")
-    
+
     # save changes to DB
     db.session.commit()
 
@@ -151,7 +152,8 @@ def get_viz_data(device_id, count=VIZ_DATA_POINTS):
 
 def parse_db_data(device_id, count):
     """ parses stored JSON and returns plottable data (timestamp vs sensor value) """
-    dat = db.session.query(SensorData).filter(SensorData.hw_id.like(device_id)).order_by(SensorData.id.desc()).limit(count)
+    dat = db.session.query(SensorData).filter(SensorData.hw_id.like(device_id)) \
+                .order_by(SensorData.id.desc()).limit(count)
     print('dev_id: ' + device_id + '')
     dat_list = list()
     for item in dat:
@@ -188,7 +190,7 @@ def msg_get_hw_id(raw_json):
     return raw_json['hardware_serial']
 
 
-# see https://stackoverflow.com/questions/2546207/does-sqlalchemy-have-an-equivalent-of-djangos-get-or-create
+# see https://stackoverflow.com/q/2546207
 def get_or_create(session, model, **kwargs):
     """ helper method to insert in DB if not exist """
     instance = session.query(model).filter_by(**kwargs).first()
@@ -211,4 +213,4 @@ def get_dev_list():
 
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    socketio.run(app)
