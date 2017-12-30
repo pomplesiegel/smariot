@@ -10,12 +10,6 @@
       "generator": "secret"
     }
   },
-  "formation": [{
-    "web": {
-      "quantity": 1,
-      "size": "free"
-    }
-  }],
   "scripts": {
     "postdeploy": "python3 -c 'from app import db; db.create_all()'"
   },
