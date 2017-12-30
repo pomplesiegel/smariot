@@ -216,7 +216,10 @@ def get_dev_list():
 
 
 def censor_downlink_URL(raw_json):
-    raw_json['downlink_url'] = 'http://example.com/'
+    try:
+        raw_json['downlink_url'] = 'http://example.com/'
+    except:
+        pass
     return raw_json
 
 
