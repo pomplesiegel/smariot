@@ -10,11 +10,14 @@
       "generator": "secret"
     }
   },
-  "formation": {
+  "formation": [{
     "web": {
       "quantity": 1,
       "size": "free"
     }
-  },
-  "image": "heroku/python"
+  }],
+  "image": "heroku/python",
+  "scripts": {
+    "postdeploy": "python -c 'from app import db; db.create_all()'"
+  }
 }
