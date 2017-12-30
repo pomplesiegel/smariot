@@ -1,5 +1,5 @@
 ### SmarIoT
-#### Barebones REST App for IoT
+#### Barebones REST App for IoT. Hooks up with [TheThingsNetwork](https://thethingsnetwork.org)
 A very simple REST application written using Python and the Flask framework. Can be depolyed to [Heroku](https://heroku.com)'s free-tier and hooked up to [TheThingsNetwork](https://thethingsnetwork.org) via `HTTP Integration`
 
 - Receives incoming JSON data as `POST` on the `/data` endpoint. A `GET` on this endpoint show the most recent message. `POST`ed data is parsed and the relevant info is persisted to PostgreSQL. `POST`s are secured via an `API_KEY`. Unauthorized `POST`s will be rejected with a `401`
