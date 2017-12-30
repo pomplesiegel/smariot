@@ -1,15 +1,27 @@
-### SmarIoT
-#### Barebones REST App for IoT. Hooks up with [TheThingsNetwork](https://thethingsnetwork.org)
-A very simple REST application written using Python and the Flask framework. Can be depolyed to [Heroku](https://heroku.com)'s free-tier and hooked up to [TheThingsNetwork](https://thethingsnetwork.org) via `HTTP Integration`
+# SmarIoT
+##### Barebones REST App for IoT. Hooks up with TheThingsNetwork
 
-- Receives incoming JSON data as `POST` on the `/data` endpoint. A `GET` on this endpoint show the most recent message. `POST`ed data is parsed and the relevant info is persisted to PostgreSQL. `POST`s are secured via an `API_KEY`. Unauthorized `POST`s will be rejected with a `401`
+### What it is
+- A very simple REST application written using Python and the Flask framework.
+- Can be depolyed to [Heroku](https://heroku.com)'s free-tier
+- Can be connected to [TheThingsNetwork](https://thethingsnetwork.org) via `HTTP Integration` to receive, store and visualize sensor data.
 
-- A `GET` on the `/db` endpoint will return data available in the DB. An optional count of records to retrieve is supported. Eg: `GET` on `/db/15` will return 15 latest records (if available) where as a simple `GET` on `/db` will return the latest record (which is the same as what `/data` returns)
 
-- Data in DB can be visualized as a line graph via the `/viz` endpoint. A dropdown is presented so that data from different endnodes may be visualized separately.
+### What it does
+- Receives incoming JSON data as `POST` on the `/data` endpoint. `POST`ed data is parsed and the relevant info is persisted to PostgreSQL DB. `POST`s are secured via an `API_KEY`. Unauthorized `POST`s will be rejected with a `401`
+
+- Retrevies stored records as JSON via `GET` on the `/db` endpoint. A (optional) count of records to retrieve maybe specified. Eg: `GET` on `/db/15` will return 15 latest records (if available) whereas a simple `GET` on `/db` will return the latest record
+
+- Data in DB can be visualized as a line graph via the `/viz` endpoint.
+
 
 ### Live Preview
-Hosted on [Heroku](https://smariot.herokuapp.com/), and hooked up to stream of LoRaWAN messages from TTN (one message exepected every 5 mins). Messages themselves are sent from out from a [LoPy](https://pycom.io/product/lopy/) device.
+A live instance is [hosted](https://smariot.herokuapp.com/) and hooked up to receive a stream of LoRaWAN messages from TTN (one message exepected every 5 mins). Messages themselves are sent from out from a [LoPy](https://pycom.io/product/lopy/) board.
+
+
+### Run Your Own Instance
+[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
+
 
 ### ToDo
 - ~Hook-up to TTN for testing~
