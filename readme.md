@@ -32,6 +32,9 @@ A live instance is [hosted](https://smariot.herokuapp.com/) and hooked up to rec
 
 - Wait for some data to arrive. If everything is setup correctly, it'll show up on the homepage
 
+### Customizing SmarIoT
+Details in [customizing.md](customizing.md)
+
 #### ToDo
 - ~Hook-up to TTN for testing~
 - ~Auto-refresh homepage~
