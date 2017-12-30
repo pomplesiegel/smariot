@@ -125,20 +125,23 @@ def get_timestamp():
 
 def save_and_emit(data):
     """ save POSTed data to DB and emit to socketio """
-    readings = msg_get_value(data)
-    hwid = msg_get_hw_id(data)
+    try:
+        readings = msg_get_value(data)
+        hwid = msg_get_hw_id(data)
 
-    # parse sensor data and add to DB
-    sensor_data = SensorData(hwid, json.dumps(readings))
-    db.session.add(sensor_data)
+        # parse sensor data and add to DB
+        sensor_data = SensorData(hwid, json.dumps(readings))
+        db.session.add(sensor_data)
 
-    # parse Hardware ID and add to DB, if not existing
-    dev_data = get_or_create(db.session, DeviceData, hw_id=hwid)
-    if dev_data:
-        db.session.add(dev_data)
+        # parse Hardware ID and add to DB, if not existing
+        dev_data = get_or_create(db.session, DeviceData, hw_id=hwid)
+        if dev_data:
+            db.session.add(dev_data)
 
-    # save changes to DB
-    db.session.commit()
+        # save changes to DB
+        db.session.commit()
+    except:
+        pass
 
     # emit raw JSON to socketio (so that it shows up on homepage)
     socketio.emit('data', {'timestamp': get_timestamp(), 'value': json.dumps(data)},
