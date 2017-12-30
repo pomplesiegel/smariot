@@ -22,3 +22,4 @@ SmarIoT should be fairly straight forward to customize. Here's the "big-picture"
 ### Adapting for source other than TTN
 - `msg_get_hw_id`, `msg_get_value` and `msg_get_timestamp` are abstractions for extracting the Hardware ID, Sensor Data and Timestamp respectively. These will need to be modified for as per the JSON structure
 - `msg_parse_val` will likely need to updated to remove the `base64` decoding
+- `censor_downlink_url` will likely need to be removed (or updated)
