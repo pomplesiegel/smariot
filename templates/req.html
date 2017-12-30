@@ -1,0 +1,39 @@
+<html>
+<head>
+    <meta content="text/html" charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="refresh" content="{{ refresh }}">
+    <title>SmarIoT</title>
+    <link rel="stylesheet" type="text/css" href="static/iframe.css"/>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.4.2.min.js"></script>
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function() {
+            namespace = '/';
+
+            // Connect to the Socket.IO server.
+            var socket = io.connect('http://' + document.domain + ':' + location.port + '/live');
+            // Event handler for new connections.
+            // The callback function is invoked when a connection with the
+            // server is established.
+            socket.on('connect', function() {
+                socket.emit('my_event', {data: 'I\'m connected!'});
+            });
+  
+            // Event handler for server sent data.
+            // The callback function is invoked whenever the server emits data
+            socket.on('data', function(msg) {
+                $('#requests tr:last').after(
+                    '<tr><td><div><p style="font-size:0.75rem;">On ' + msg.timestamp +
+                    ' received message</p><samp style="font-size:0.85rem;">' + msg.value +
+                    '</samp></div></td></tr>');
+            });
+          });
+    </script>
+</head>
+<body>
+    <table id="requests" style="border-collapse:separate; border-spacing:1rem;" summary="list of messages received on the endpoint">
+        <tr></tr>
+    </table>
+</body>
+</html>

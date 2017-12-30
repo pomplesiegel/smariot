@@ -26,8 +26,10 @@ db = SQLAlchemy(app)
 # Get API Key for env vars (can be set via Heroku Dashboard)
 API_KEY = os.environ['API_KEY']
 
-class Data(db.Model): # pylint: disable=too-few-public-methods
-    """ ORM class for storing messages to DB """
+
+class SensorData(db.Model): # pylint: disable=too-few-public-methods
+    """ ORM class for sensor readings """
+    __tablename__ = 'sensor_data'
     id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     msg = db.Column(db.String)
@@ -35,11 +37,33 @@ class Data(db.Model): # pylint: disable=too-few-public-methods
     def __init__(self, msg):
         self.msg = msg
 
+    def __str__(self):
+        return "SensorData({},{})".format(self.timestamp, self.msg)
+
+
+class DeviceData(db.Model): # pylint: disable=too-few-public-methods
+    """ ORM class for device info """
+    __tablename__ = 'device_data'
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    hw_id = db.Column(db.String)
+
+    def __init__(self, hw_id):
+        self.hw_id = hw_id
+        
+    def __str__(self):
+        return "DeviceData({},{})".format(self.timestamp, self.hw_id)
+
 
 @app.route("/")
 def default_handler():
     """handler for / endpoint"""
-    return render_template('index.html', ts=get_timestamp())
+    return render_template('index.html')
+
+@app.route("/req")
+def req_handler():
+    """handler for request iframe"""
+    return render_template('req.html', refresh=RELOAD_INTERVAL)
 
 
 @app.route("/data", methods=['GET', 'POST'])
@@ -50,11 +74,11 @@ def data_handler():
         if not key == API_KEY:
             abort(401)
         else:
-            try:
-                save_and_emit(request.get_json(force=True))
-                return jsonify({'result': 'success'})
-            except:
-                abort(400)
+            #try:
+            save_and_emit(request.get_json(force=True))
+            return jsonify({'result': 'success'})
+            #except:
+            #    abort(400)
     elif request.method == 'GET':
         return db_fetch_handler()
     else:
@@ -65,10 +89,10 @@ def data_handler():
 @app.route("/db/<count>")
 def db_fetch_handler(count=REC_FETCH_COUNT):
     """ handler for /db endpoint -- fetch data from DB"""
-    dat = db.session.query(Data).order_by(Data.id.desc()).limit(count)
+    dat = db.session.query(SensorData).order_by(SensorData.id.desc()).limit(count)
     ret_list = list()
     for item in dat:
-        ret_list.append(json.loads(item.msg))
+        ret_list.append({'timestamp': item.timestamp, 'data':json.loads(item.msg)})
     return jsonify(ret_list)
 
 
@@ -77,6 +101,7 @@ def viz_handler():
     """ handler for the viz endpoint """
     viz = get_viz_data()
     return render_template('viz.html', refresh=RELOAD_INTERVAL, viz_data=viz)
+
 
 @socketio.on('connect', namespace='/live')
 def client_connect():
@@ -91,9 +116,23 @@ def get_timestamp():
 
 def save_and_emit(data):
     """ save POSTed data to DB and emit to socketio """
-    db_data = Data(json.dumps(data))
-    db.session.add(db_data)
+    # parse sensor data and add to DB
+    readings = msg_get_value(data)
+    sensor_data = SensorData(json.dumps(readings))
+    db.session.add(sensor_data)
+    
+    # parse Hardware ID and add to DB, if not existing
+    hwid = msg_get_hw_id(data)
+    dev_data = get_or_create(db.session, DeviceData, hw_id=hwid)
+    if dev_data:
+        db.session.add(dev_data)
+    else:
+        print("Device: " + str(hwid) + " already in DB")
+    
+    # save changes to DB
     db.session.commit()
+
+    # emit raw JSON to socketio (so that it shows up on homepage)
     socketio.emit('data', {'timestamp': get_timestamp(), 'value': json.dumps(data)},
                   namespace='/live')
 
@@ -105,18 +144,11 @@ def get_viz_data(count=VIZ_DATA_POINTS):
 
 def parse_db_data(count):
     """ parses stored JSON and returns plottable data (timestamp vs sensor value) """
-    dat = db.session.query(Data).order_by(Data.id.desc()).limit(count)
+    dat = db.session.query(SensorData).order_by(SensorData.id.desc()).limit(count)
     dat_list = list()
     for item in dat:
-        raw_json = json.loads(item.msg)
-        try:
-            timestamp = msg_get_timestamp(raw_json)
-        except:
-            continue
-        try:
-            val = msg_get_value(raw_json)
-        except:
-            val = list(0, 0) # default value, in case of unparsable data
+        timestamp = item.timestamp
+        val = json.loads(item.msg)
         dat_list.append((timestamp, val))
     return list(reversed(dat_list))
 
@@ -135,7 +167,7 @@ def msg_parse_val(raw_val):
     """ parse JSON from TTN and return actual sensor value """
     ret_val = 0
     try:
-        # extract last byte which is the sensor value
+        # extract sensor values (2x floats)
         byte_arr = base64.b64decode(raw_val)
         ret_val = struct.unpack('ff', byte_arr)
     except:
@@ -143,5 +175,23 @@ def msg_parse_val(raw_val):
     return ret_val
 
 
+def msg_get_hw_id(raw_json):
+    """ extract hardware ID from JSON """
+    return raw_json['hardware_serial']
+
+
+# see https://stackoverflow.com/questions/2546207/does-sqlalchemy-have-an-equivalent-of-djangos-get-or-create
+def get_or_create(session, model, **kwargs):
+    """ helper method to insert in DB if not exist """
+    instance = session.query(model).filter_by(**kwargs).first()
+    if instance:
+        return instance
+    else:
+        instance = model(**kwargs)
+        session.add(instance)
+        session.commit()
+        return instance
+
+
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    socketio.run(app)

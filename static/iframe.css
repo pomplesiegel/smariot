@@ -1,0 +1,19 @@
+body {
+    font-size:18px;
+    color:#444;
+    background-color: #fefefe;
+    font-family: Helvetica, Arial, sans-serif !important;
+}
+
+h1,h2,h3{
+    font-size:3rem;
+    line-height:2rem;
+}
+
+tr:nth-child(even) {
+    background-color: #eaeaea;
+}
+
+tr:nth-child(odd) {
+    background-color: #fafafa;
+}
