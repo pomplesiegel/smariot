@@ -154,7 +154,6 @@ def parse_db_data(device_id, count):
     """ parses stored JSON and returns plottable data (timestamp vs sensor value) """
     dat = db.session.query(SensorData).filter(SensorData.hw_id.like(device_id)) \
                 .order_by(SensorData.id.desc()).limit(count)
-    print('dev_id: ' + device_id + '')
     dat_list = list()
     for item in dat:
         timestamp = item.timestamp
