@@ -144,7 +144,8 @@ def save_and_emit(data):
         pass
 
     # emit raw JSON to socketio (so that it shows up on homepage)
-    socketio.emit('data', {'timestamp': get_timestamp(), 'value': json.dumps(data)},
+    disp_json = censor_downlink_URL(data)
+    socketio.emit('data', {'timestamp': get_timestamp(), 'value': json.dumps(disp_json)},
                   namespace='/live')
 
 
@@ -212,6 +213,11 @@ def get_dev_list():
     for item in dat:
         dat_list.append(str(item.hw_id))
     return list(reversed(dat_list))
+
+
+def censor_downlink_URL(raw_json):
+    raw_json['downlink_url'] = 'http://example.com/'
+    return raw_json
 
 
 if __name__ == '__main__':
