@@ -20,10 +20,19 @@ A live instance is [hosted](https://smariot.herokuapp.com/) and hooked up to rec
 
 
 ### Run Your Own Instance
-[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
+- Create a new heroku via [![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
 
+- Once the instance is up, navigate to Heroku's Dashboard -> _Your Application Name_ -> Settings and take note of the generated environment variable named `API_KEY`
+![Imgur](https://i.imgur.com/Bn9QSxX.png)
 
-### ToDo
+- Follow TTN [documentation](https://www.thethingsnetwork.org/docs/applications/http/) and add a new `HTTP Integration`. Use your heroku's URL followed by `/data` for the URL field
+
+- Ensure that the `Custom Header Name` is set to `x-api-key` and `Custom Header Value` is set to match the generated `API_KEY`
+![Imgur](https://i.imgur.com/djzUnOm.png)
+
+- Wait for some data to arrive. If everything is setup correctly, it'll show up on the homepage
+
+#### ToDo
 - ~Hook-up to TTN for testing~
 - ~Auto-refresh homepage~
 - ~Timestamps for requests~
