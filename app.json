@@ -16,8 +16,8 @@
       "size": "free"
     }
   }],
-  "image": "heroku/python",
   "scripts": {
-    "postdeploy": "python -c 'from app import db; db.create_all()'"
-  }
+    "postdeploy": "python3 -c 'from app import db; db.create_all()'"
+  },
+  "image": "heroku/python"
 }
