@@ -1,5 +1,7 @@
 # SmarIoT
 ##### Barebones REST App for IoT. Hooks up with TheThingsNetwork
+![build](https://api.travis-ci.org/bhargavbhat/smariot.svg?branch=master)
+[![Requirements Status](https://requires.io/github/bhargavbhat/smariot/requirements.svg?branch=master)](https://requires.io/github/bhargavbhat/smariot/requirements/?branch=master)
 
 ### What it is
 - A very simple REST application written using Python and the Flask framework.
